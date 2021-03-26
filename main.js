@@ -24,7 +24,8 @@ var vertices = [
   new THREE.Vector3(-1 * halfWidth, -1 * halfHeight, 0)
 ]
 
-var obj = new Polygon(vertices, {color: 0x00ff99, strokeColor: 0x666});
+var obj = new Triangle(0.2, {color :0x00ff88, strokeColor: 0x666});
+var line = new NumberLine(0, 4, 3);
 var translation = document.getElementById("translate");
 var rotation = document.getElementById("rotation");
 var scale = document.getElementById("scale");
@@ -56,9 +57,12 @@ camera.position.z = 5;
 const animate = function () {
   requestAnimationFrame( animate );
 
-  obj.positionX(translation.value);
-  obj.rotateZ(-rotation.value)
-  obj.scaleY(scale.value);
+  line.positionX(translation.value);
+  line.rotateZ(-rotation.value)
+  line.positionY(0);
+
+  obj.position(line.p2l(scale.value));
+  //console.log(line.p2l(scale.value));
   /*
   square.rotateZ(0.01);
 
