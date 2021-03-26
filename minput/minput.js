@@ -22,6 +22,27 @@ class Mtransform {
     this.positionZ(vector.z);
   }
 
+  translateX(value){
+    value = parseFloat(value);
+    this.group.translateX = value;
+  }
+
+  translateY(value){
+    value = parseFloat(value);
+    this.group.translateY = value;
+  }
+
+  translateZ(value){
+    value = parseFloat(value);
+    this.group.translateZ = value;
+  }
+
+  translate(vector){
+    this.translateX(vector.x);
+    this.translateY(vector.y);
+    this.translateZ(vector.z);
+  }
+
   scaleX(value){
     value = parseFloat(value);
     this.group.scale.x = value;
@@ -222,6 +243,63 @@ class NumberLine extends Line {
 
   p2l(x){
     return this.pointToLine(x);
+  }
+}
+
+class Axis2D extends Mtransform {
+  constructor(
+    xMin = 0,
+    xMax = 1,
+    yMin = 0,
+    yMax = 1,
+    xWidth = 3,
+    yHeight = 3,
+    {color=0x000, strokeColor=0x666666, strokeWidth=0.05} = {}
+  ){
+    super();
+    this.xMin = xMin;
+    this.xMax = xMax;
+    this.yMin = yMin;
+    this.yMax = yMax;
+    this.xWidth = xWidth;
+    this.yHeight = yHeight;
+    this.color = color;
+    this.strokeColor = strokeColor;
+    this.strokeWidth = strokeWidth;
+    this.createAxis();
+  }
+
+  createAxis(){
+    this.xAxis = new NumberLine(this.xMin, this.xMax, this.xWidth,
+      {color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth});
+    this.yAxis = new NumberLine(this.yMin, this.yMax, this.yHeight,
+      {color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth});
+
+    this.xAxis.scaleX(1.05);
+    this.xAxis.group.translateX(-0.025);
+    this.yAxis.scaleX(1.05);
+    this.yAxis.group.translateX(-0.025);
+    this.yAxis.rotateZ(Math.PI / 2);
+    this.xAxis.group.translateX(this.xWidth/2);
+    this.yAxis.group.translateX(this.xWidth/2);
+    this.group = new THREE.Group();
+    this.group.add(this.xAxis.group);
+    this.group.add(this.yAxis.group);
+    scene.add(this.group);
+  }
+
+  pointToLine(x, y){
+    var vecX = this.xAxis.p2l(x);
+    var vecY = this.yAxis.p2l(y);
+    var vec = vecX.add(vecY);
+    vec.addScalar(0.025);
+    vec.add(this.group.position);
+    vec.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.group.rotation.z);
+    return vec;
+  }
+
+  p2l(x, y){
+    return this.pointToLine(x, y);
   }
 }
 

@@ -24,8 +24,9 @@ var vertices = [
   new THREE.Vector3(-1 * halfWidth, -1 * halfHeight, 0)
 ]
 
-var obj = new Triangle(0.2, {color :0x00ff88, strokeColor: 0x666});
-var line = new NumberLine(0, 4, 3);
+var obj = new Circle(0.2, 100, {color :0xbb3388, strokeWidth:0});
+//var line = new NumberLine(0, 4, 3);
+var line = new Axis2D(0, 5, 0, 5);
 var translation = document.getElementById("translate");
 var rotation = document.getElementById("rotation");
 var scale = document.getElementById("scale");
@@ -59,9 +60,8 @@ const animate = function () {
 
   line.positionX(translation.value);
   line.rotateZ(-rotation.value)
-  line.positionY(0);
 
-  obj.position(line.p2l(scale.value));
+  obj.position(line.p2l(scale.value, scale.value));
   //console.log(line.p2l(scale.value));
   /*
   square.rotateZ(0.01);
