@@ -1,11 +1,10 @@
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, 500 / 500, 0.1, 1000 );
-
-const renderer = new THREE.WebGLRenderer({ antialias: true, autoSize: true });
+var canvas = document.getElementById("minput");
+const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, autoSize: true });
 renderer.setSize(500, 500);
 renderer.setClearColor( 0xffffff, 1 );
 document.body.appendChild( renderer.domElement );
-
 
 //const square = createTriangle(3, color=0x000000);
 //var s = createSquare(3, color=0x00ff00);
@@ -26,8 +25,13 @@ var vertices = [
 
 
 //var line = new NumberLine(0, 4, 3);
-var line = new Axis2D(0, 5, 0, 5, 5, 5);
-line.position(new THREE.Vector3(-2, -3, 0));
+var line = new Axis2D(0, 5, -5, 5, 5, 5);
+
+var curveLine = new Line({strokeWidth: 0.05, color: 0xff0000});
+
+
+
+
 var obj = new Circle(0.2, 100, {color :0xbb3388, strokeWidth:0});
 var translation = document.getElementById("translate");
 var rotation = document.getElementById("rotation");
@@ -56,6 +60,29 @@ function moveArrow(arr, startVertex, endVertex){
   return arr;
 }
 
+function func(x){
+  return Math.sin(x * 3.14);
+}
+
+
+function drawMathjax(text, x, y){
+  var para = document.createElement("p");
+  var node = document.createTextNode(text);
+  para.appendChild(node);
+  para.style.position = "absolute";
+  para.style.margin = 0;
+  para.style.left = canvas.offsetLeft + x + "px";
+  para.style.top = canvas.offsetTop + y + "px";
+  document.body.appendChild(para);
+  MathJax.typesetPromise();
+  //element = document.getElementById("test2");
+
+}
+
+drawMathjax("\\( x = y^{2} \\)", 0, 0);
+line.parametricPlot(func);
+line.position(new THREE.Vector3(-2, -2, 0));
+
 camera.position.z = 5;
 const animate = function () {
   requestAnimationFrame( animate );
@@ -64,6 +91,7 @@ const animate = function () {
   line.rotateZ(-rotation.value)
 
   obj.position(line.p2l(scale.value, scale.value));
+  //
   //console.log(line.p2l(scale.value));
   /*
   square.rotateZ(0.01);

@@ -252,7 +252,7 @@ class NumberLine extends Line {
     var startCap = this.addTick(this.startVertex, 0.2, 1.1);
     tickLines.add(startCap.group);
     for(var i=0; i < tickNum; i++){
-      var tick = i - this.minVal;
+      var tick = i + this.minVal;
       var position = this.p2l(tick);
       var tickLine = this.addTick(position);
       tickLines.add(tickLine.group);
@@ -331,6 +331,22 @@ class Axis2D extends Mtransform {
   p2l(x, y){
     return this.pointToLine(x, y);
   }
+
+  parametricPlot(func, color=0xaa00aa, width=0.05, dt=0.01){
+    var output = [];
+    var dist = this.xMax - this.xMin;
+    for(var x=this.xMin; x < this.xMax; x += dt){
+      var out = func(x);
+      output.push(this.p2l(x, out));
+    }
+    var shape = new MeshLine();
+    shape.setPoints(output, p => width);
+    var material = new MeshLineMaterial({color: color});
+    var mesh = new THREE.Mesh(shape, material);
+    var group = new THREE.Group();
+    group.add(mesh);
+    this.group.add(group);
+  }
 }
 
 // Interpolation Functions
@@ -348,7 +364,7 @@ function linearInterpolate(a, b, alpha, interpolation=EasingFunction.linear){
 }
 
 function getInterpolateAlpha(num1, num2, num3){
-  return num3 / (num2 - num1);
+  return (num3 - num1) / (num2 - num1);
 }
 
 var EasingFunction = {
