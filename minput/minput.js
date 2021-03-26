@@ -225,11 +225,41 @@ class Line extends Mobject {
 // Complex Structures
 
 class NumberLine extends Line {
-  constructor(minVal=0, maxVal=1, width=1, {color=0x000, strokeColor=0x000, strokeWidth=0.1} = {}){
+  constructor(minVal=0, maxVal=1, width=1, tickInterval=1, {flipTicks=false, color=0x000, strokeColor=0x000, strokeWidth=0.1} = {}){
     super(new THREE.Vector3(-0.5 * width, 0, 0), new THREE.Vector3(0.5 * width, 0, 0),
     {color: strokeColor, strokeColor: strokeColor, strokeWidth: strokeWidth});
     this.minVal = minVal;
     this.maxVal = maxVal;
+    this.tickInterval = tickInterval;
+    this.flipTicks = flipTicks;
+    this.createTicks();
+  }
+
+  addTick(vertex, size=0.1, strokeWidthMultiplier=1){
+    var v2 = vertex.clone();
+    v2.y -= size
+    if(this.flipTicks){
+      v2.y *= -1;
+    }
+    var tick = new Line(vertex, v2,
+      {color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth * strokeWidthMultiplier});
+    return tick;
+  }
+
+  createTicks(){
+    var tickLines = new THREE.Group();
+    var tickNum = Math.floor((this.maxVal - this.minVal) / this.tickInterval);
+    var startCap = this.addTick(this.startVertex, 0.2, 1.1);
+    tickLines.add(startCap.group);
+    for(var i=0; i < tickNum; i++){
+      var tick = i - this.minVal;
+      var position = this.p2l(tick);
+      var tickLine = this.addTick(position);
+      tickLines.add(tickLine.group);
+    }
+    var endCap = this.addTick(this.endVertex, 0.2, 1.1);
+    tickLines.add(endCap.group);
+    this.group.add(tickLines);
   }
 
   pointToLine(x){
@@ -254,7 +284,9 @@ class Axis2D extends Mtransform {
     yMax = 1,
     xWidth = 3,
     yHeight = 3,
-    {color=0x000, strokeColor=0x666666, strokeWidth=0.05} = {}
+    xTickInterval = 1,
+    yTickInterval = 1,
+    {color=0x000, strokeColor=0x888888, strokeWidth=0.05} = {}
   ){
     super();
     this.xMin = xMin;
@@ -263,6 +295,8 @@ class Axis2D extends Mtransform {
     this.yMax = yMax;
     this.xWidth = xWidth;
     this.yHeight = yHeight;
+    this.xTickInterval = xTickInterval;
+    this.yTickInterval = yTickInterval;
     this.color = color;
     this.strokeColor = strokeColor;
     this.strokeWidth = strokeWidth;
@@ -270,18 +304,14 @@ class Axis2D extends Mtransform {
   }
 
   createAxis(){
-    this.xAxis = new NumberLine(this.xMin, this.xMax, this.xWidth,
+    this.xAxis = new NumberLine(this.xMin, this.xMax, this.xWidth, this.xTickInterval,
       {color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth});
-    this.yAxis = new NumberLine(this.yMin, this.yMax, this.yHeight,
-      {color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth});
+    this.yAxis = new NumberLine(this.yMin, this.yMax, this.yHeight, this.yTickInterval,
+      {color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth, flipTicks: true});
 
-    this.xAxis.scaleX(1.05);
-    this.xAxis.group.translateX(-0.025);
-    this.yAxis.scaleX(1.05);
-    this.yAxis.group.translateX(-0.025);
     this.yAxis.rotateZ(Math.PI / 2);
     this.xAxis.group.translateX(this.xWidth/2);
-    this.yAxis.group.translateX(this.xWidth/2);
+    this.yAxis.group.translateX(this.yHeight/2);
     this.group = new THREE.Group();
     this.group.add(this.xAxis.group);
     this.group.add(this.yAxis.group);
@@ -292,9 +322,9 @@ class Axis2D extends Mtransform {
     var vecX = this.xAxis.p2l(x);
     var vecY = this.yAxis.p2l(y);
     var vec = vecX.add(vecY);
-    vec.addScalar(0.025);
-    vec.add(this.group.position);
     vec.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.group.rotation.z);
+    vec.add(this.group.position);
+
     return vec;
   }
 

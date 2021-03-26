@@ -24,9 +24,11 @@ var vertices = [
   new THREE.Vector3(-1 * halfWidth, -1 * halfHeight, 0)
 ]
 
-var obj = new Circle(0.2, 100, {color :0xbb3388, strokeWidth:0});
+
 //var line = new NumberLine(0, 4, 3);
-var line = new Axis2D(0, 5, 0, 5);
+var line = new Axis2D(0, 5, 0, 5, 5, 5);
+line.position(new THREE.Vector3(-2, -3, 0));
+var obj = new Circle(0.2, 100, {color :0xbb3388, strokeWidth:0});
 var translation = document.getElementById("translate");
 var rotation = document.getElementById("rotation");
 var scale = document.getElementById("scale");
@@ -58,7 +60,7 @@ camera.position.z = 5;
 const animate = function () {
   requestAnimationFrame( animate );
 
-  line.positionX(translation.value);
+  //line.positionX(translation.value);
   line.rotateZ(-rotation.value)
 
   obj.position(line.p2l(scale.value, scale.value));
