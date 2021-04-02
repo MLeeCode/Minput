@@ -1,42 +1,51 @@
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, 500 / 500, 0.1, 1000 );
+const camera = new THREE.PerspectiveCamera(75, 1000 / 500, 0.1, 1000);
+
 var canvas = document.getElementById("minput");
 const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, autoSize: true });
-renderer.setSize(500, 500);
-renderer.setClearColor( 0xffffff, 1 );
-document.body.appendChild( renderer.domElement );
+renderer.setSize(1000, 500);
+document.body.appendChild(renderer.domElement);
 
-//const square = createTriangle(3, color=0x000000);
-//var s = createSquare(3, color=0x00ff00);
-
-//const arr = createArrow(new THREE.Vector3(2, 1, 0), new THREE.Vector3(-2, 3, 0));
-//var arr = createArrow(new THREE.Vector3(-2, 3, 0), new THREE.Vector3(2, 1, 0));
-//scene.add(s)
-//scene.add(square);
-//scene.add(arr);
-var halfWidth = 1;
-var halfHeight = 1;
-var vertices = [
-  new THREE.Vector3(-1 * halfWidth, 1 * halfHeight, 0),
-  new THREE.Vector3(1 * halfWidth, 1 * halfHeight, 0),
-  new THREE.Vector3(1 * halfWidth, -1 * halfHeight, 0),
-  new THREE.Vector3(-1 * halfWidth, -1 * halfHeight, 0)
-]
+renderer.setClearColor(0xffffff, 1);
+document.body.appendChild(renderer.domElement);
+camera.position.z = 5;
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
 
-//var line = new NumberLine(0, 4, 3);
-var line = new Axis2D(0, 5, -5, 5, 5, 5);
+axis = new Axis2D(0, 5, 0, 5, 5, 5);
+axis.position(new THREE.Vector3(-2.5, -2.5, 0));
 
-var curveLine = new Line({strokeWidth: 0.05, color: 0xff0000});
+function sin(x) {
+    return Math.sin(x ** 2) + 3;
+}
 
+function cos(x) {
+    return Math.cos(x ** 2) + 3;
+}
 
+axis.parametricPlot(sin);
+axis.parametricPlot(cos, 0x00aaaa);
 
+triangle = new Circle(0.2, 50, { color: 0x0000ff, strokeWidth: 0 });
 
-var obj = new Circle(0.2, 100, {color :0xbb3388, strokeWidth:0});
-var translation = document.getElementById("translate");
-var rotation = document.getElementById("rotation");
-var scale = document.getElementById("scale");
+triangle.position(axis.p2l(2, 4));
 
+var xSlider = document.getElementById("xAxis");
+var ySlider = document.getElementById("yAxis");
+
+console.log(axis.xAxis.p2l(0));
+console.log(axis.yAxis.p2l(0));
+
+const animate = function () {
+    requestAnimationFrame(animate);
+    triangle.position(axis.p2l(xSlider.value, ySlider.value));
+    controls.update();
+    renderer.render(scene, camera);
+};
+
+animate();
+
+/*
 function setVertex(object, index, vector){
   var pArr = object.geometry.attributes.position.array;
   pArr[index * 3] = vector.x;
@@ -64,7 +73,6 @@ function func(x){
   return Math.sin(x * 3.14);
 }
 
-
 function drawMathjax(text, x, y){
   var para = document.createElement("p");
   var node = document.createTextNode(text);
@@ -74,40 +82,22 @@ function drawMathjax(text, x, y){
   para.style.left = canvas.offsetLeft + x + "px";
   para.style.top = canvas.offsetTop + y + "px";
   document.body.appendChild(para);
+  var group = new THREE.Group();
+  group.add(para);
+
   MathJax.typesetPromise();
-  //element = document.getElementById("test2");
+  return group;
 
 }
 
-drawMathjax("\\( x = y^{2} \\)", 0, 0);
-line.parametricPlot(func);
-line.position(new THREE.Vector3(-2, -2, 0));
-
-camera.position.z = 5;
-const animate = function () {
-  requestAnimationFrame( animate );
-
-  //line.positionX(translation.value);
-  line.rotateZ(-rotation.value)
-
-  obj.position(line.p2l(scale.value, scale.value));
-  //
-  //console.log(line.p2l(scale.value));
-  /*
-  square.rotateZ(0.01);
+function updateGrid(grid, squares) {
+    for (var i = 0; i < 5; i++) {
+        for (var j = 0; j < 5; j++) {
+            var s = squares[i][j];
+            s.material.color = new THREE.Color(grid[i][j], 0, 0);
+        }
+    }
+}
+*/
 
 
-
-  //s.rotation.z = slider.value;
-
-  s.geometry.attributes.position.array[0] = slider.value;
-
-  arr = moveArrow(arr, new THREE.Vector3(-2, 3, 0),
-  new THREE.Vector3(s.geometry.attributes.position.array[0], s.geometry.attributes.position.array[1], 0));
-  s.geometry.attributes.position.needsUpdate = true;
-  */
-  //arr.children[1].rotation.z = slider.value;
-  renderer.render( scene, camera );
-};
-
-animate();
