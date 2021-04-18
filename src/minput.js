@@ -110,14 +110,15 @@ class Mobject extends Mtransform {
     strokeColor;
     strokeWidth;
 
-    constructor(vertices, { color = 0x000, strokeColor = 0x000, strokeWidth = 0.01 } = {}) {
+    constructor(vertices, { color = 0x000, strokeColor = 0x000, strokeWidth = 0.01, createInstance = true } = {}) {
         super();
         this.vertices = vertices;
         this.color = color;
         this.strokeColor = strokeColor;
         this.strokeWidth = strokeWidth;
-
-        this.create();
+        if (createInstance) {
+            this.create();
+        }
     }
 
     setColor(color) {
@@ -240,21 +241,51 @@ class Line extends Mobject {
     }
 }
 
-class Latex extends Mtransform {
-    constructor(latex) {
+// Dom Elements
 
+class Mtext extends Mobject {
+    text;
+    fontSize;
+
+    constructor(text, { color = 0x000, fontSize = "1em" } = {}) {
+        super(null, { color: color, createInstance: false });
+        this.text = text;
+        this.fontSize = fontSize; 
+        this.create();
     }
+
+    create(addToScene = true, border = null, meshMaterial = null) {
+        var element = document.createElement('div');
+        element.className = 'element';
+        element.textContent = this.text;
+        element.style.color = this.color;
+        element.style.fontSize = this.fontSize;
+        
+        this.mesh = new CSS2DObject(element);
+        this.group = new THREE.Group();
+        this.group.add(this.mesh);
+        if (addToScene) {
+            scene.add(this.group);
+        }
+        MathJax.typesetPromise();
+        return this.group;
+    }
+
+
 }
 
 // Complex Structures
 
 class NumberLine extends Line {
-    constructor(minVal = 0, maxVal = 1, width = 1, tickInterval = 1, { flipTicks = false, color = 0x000, strokeColor = 0x000, strokeWidth = 0.05} = {}) {
+    constructor(minVal = 0, maxVal = 1, width = 1, tickInterval = 1, bigTickInterval=2, labelInterval=2, { flipTicks = false, color = 0x000, strokeColor = 0x000, strokeWidth = 0.05, startLabel=true} = {}) {
         super(new THREE.Vector3(-0.5 * width, 0, 0), new THREE.Vector3(0.5 * width, 0, 0),
             { color: strokeColor, strokeColor: strokeColor, strokeWidth: strokeWidth });
         this.minVal = minVal;
         this.maxVal = maxVal;
         this.tickInterval = tickInterval;
+        this.bigTickInterval = bigTickInterval;
+        this.labelInterval = labelInterval;
+        this.startLabel = startLabel;
         this.flipTicks = flipTicks;
         this.createTicks();
     }
@@ -274,20 +305,52 @@ class NumberLine extends Line {
         return tick;
     }
 
+    addLabel(text, vertex, size = "0.75em") {
+        var t = new Mtext(text, { fontSize: size, color: this.color});
+        t.position(vertex);
+        if (this.flipTicks) {
+            t.positionY(0.23);
+        } else {
+            t.positionY(-0.23);
+        }
+        return t;
+    }
+
     createTicks() {
+        var labels = new THREE.Group();
         var tickLines = new THREE.Group();
         var tickNum = Math.floor((this.maxVal - this.minVal) / this.tickInterval);
         var startCap = this.addTick(this.startVertex, 0.1, 1);
         tickLines.add(startCap.group);
+
+        if (this.startLabel) {
+            labels.add(this.addLabel("$$" + this.minVal + "$$", this.startVertex).group);
+        }
+
         for (var i = 0; i < tickNum; i++) {
+            var size = 0.05;
+            if (i % this.bigTickInterval == 0) {
+                size = size * 2;
+            }
+            
             var tick = i + this.minVal;
             var position = this.p2l(tick);
-            var tickLine = this.addTick(position);
+
+            if (i % this.labelInterval == 0) {
+                if (i == 0 && this.startLabel || i > 0) {
+                    var t = this.addLabel("$$" + (i + this.minVal) + "$$", position);
+                    labels.add(t.group);
+                } 
+                
+            }
+            
+            var tickLine = this.addTick(position, size);
             tickLines.add(tickLine.group);
         }
         var endCap = this.addTick(this.endVertex, 0.1, 1);
         tickLines.add(endCap.group);
         this.group.add(tickLines);
+        this.group.add(labels);
     }
 
     pointToLine(x) {
@@ -332,10 +395,13 @@ class Axis2D extends Mtransform {
     }
 
     createAxis() {
-        this.xAxis = new NumberLine(this.xMin, this.xMax, this.xWidth, this.xTickInterval,
-            { color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth });
-        this.yAxis = new NumberLine(this.yMin, this.yMax, this.yHeight, this.yTickInterval,
-            { color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth, flipTicks: true });
+        var startLabel = !(this.xMin == this.yMin);
+
+        this.xAxis = new NumberLine(this.xMin, this.xMax, this.xWidth, this.xTickInterval, 2, 2,
+            { color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth, startLabel: startLabel });
+        this.yAxis = new NumberLine(this.yMin, this.yMax, this.yHeight, this.yTickInterval, 2, 2,
+            { color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth, flipTicks: true, startLabel: startLabel });
+
 
         this.yAxis.rotateZ(Math.PI / 2);
         this.xAxis.group.translateX(this.xWidth / 2);
@@ -343,6 +409,15 @@ class Axis2D extends Mtransform {
         this.group = new THREE.Group();
         this.group.add(this.xAxis.group);
         this.group.add(this.yAxis.group);
+
+        if (!startLabel) {
+            var t = new Mtext("$$" + this.xMin + "$$", { fontSize: "0.75em", color: this.color });
+            t.position(this.xAxis.startVertex);
+            t.positionY(-0.23);
+            t.positionX(-0.23);
+            this.group.add(t.group);
+        }
+
         scene.add(this.group);
     }
 

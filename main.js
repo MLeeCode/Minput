@@ -2,15 +2,38 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, 1000 / 500, 0.1, 1000);
 
 var canvas = document.getElementById("minput");
-const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, autoSize: true });
-renderer.setSize(1000, 500);
-document.body.appendChild(renderer.domElement);
+cssRenderer = new CSS2DRenderer();
+cssRenderer.setSize(1000, 500);
+cssRenderer.domElement.style.position = 'absolute';
+cssRenderer.domElement.style.top = "0";
+document.querySelector('#css').appendChild(cssRenderer.domElement);
 
-renderer.setClearColor(0xffffff, 1);
-document.body.appendChild(renderer.domElement);
+renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.domElement.style.position = 'absolute';
+renderer.domElement.style.top = "0";
+document.querySelector('#webgl').appendChild(renderer.domElement);
+renderer.setSize(1000, 500);
+
+//renderer.setClearColor(0xffffff, 1);
+//document.body.appendChild(renderer.domElement);
 camera.position.z = 5;
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
+/*
+const element = document.createElement('div');
+element.className = 'element';
+element.style.width = "1px";
+element.style.height = "1px";
+element.textContent = "Hello World $x = y^{2}$";
+element.style.backgroundColor = 'red';
+element.style.color = 'red';
+const objectCSS = new CSS2DObject(element);
+objectCSS.position.x = 0;
+objectCSS.position.y = 0;
+scene.add(objectCSS);
+*/
+
+//textObj = new Mtext("$$x = y^{2}$$", { color: 0x00ff00, fontSize: "3em" });
 
 axis = new Axis2D(0, 5, 0, 5, 5, 5);
 axis.position(new THREE.Vector3(-2.5, -2.5, 0));
@@ -41,6 +64,7 @@ const animate = function () {
     triangle.position(axis.p2l(xSlider.value, ySlider.value));
     controls.update();
     renderer.render(scene, camera);
+    cssRenderer.render(scene, camera);
 };
 
 animate();
