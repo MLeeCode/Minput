@@ -2,7 +2,7 @@
 class Mtransform {
 
     groupPositionOffset(meshObject) {
-        /* 
+        /*
          * If the group is moved from position
          * Add to mesh
          */
@@ -250,7 +250,7 @@ class Mtext extends Mobject {
     constructor(text, { color = 0x000, fontSize = "1em" } = {}) {
         super(null, { color: color, createInstance: false });
         this.text = text;
-        this.fontSize = fontSize; 
+        this.fontSize = fontSize;
         this.create();
     }
 
@@ -260,7 +260,7 @@ class Mtext extends Mobject {
         element.textContent = this.text;
         element.style.color = this.color;
         element.style.fontSize = this.fontSize;
-        
+
         this.mesh = new CSS2DObject(element);
         this.group = new THREE.Group();
         this.group.add(this.mesh);
@@ -332,7 +332,7 @@ class NumberLine extends Line {
             if (i % this.bigTickInterval == 0) {
                 size = size * 2;
             }
-            
+
             var tick = i + this.minVal;
             var position = this.p2l(tick);
 
@@ -340,10 +340,10 @@ class NumberLine extends Line {
                 if (i == 0 && this.startLabel || i > 0) {
                     var t = this.addLabel("$$" + (i + this.minVal) + "$$", position);
                     labels.add(t.group);
-                } 
-                
+                }
+
             }
-            
+
             var tickLine = this.addTick(position, size);
             tickLines.add(tickLine.group);
         }
@@ -377,7 +377,7 @@ class Axis2D extends Mtransform {
         yHeight = 3,
         xTickInterval = 1,
         yTickInterval = 1,
-        { color = 0x000, strokeColor = 0x888888, strokeWidth = 0.03 } = {}
+        { color = 0x000, strokeColor = 0x888888, strokeWidth = 0.03, createAxis=true} = {}
     ) {
         super();
         this.xMin = xMin;
@@ -391,7 +391,9 @@ class Axis2D extends Mtransform {
         this.color = color;
         this.strokeColor = strokeColor;
         this.strokeWidth = strokeWidth;
-        this.createAxis();
+        if (createAxis){
+          this.createAxis();
+        }
     }
 
     createAxis() {
@@ -454,6 +456,69 @@ class Axis2D extends Mtransform {
     }
 }
 
+class Axis3D extends Axis2D {
+  constructor(
+    xMin = 0,
+    xMax = 1,
+    yMin = 0,
+    yMax = 1,
+    zMin = 0,
+    zMax = 1,
+    xWidth = 3,
+    yHeight = 3,
+    zDepth = 3,
+    xTickInterval = 1,
+    yTickInterval = 1,
+    zTickInterval = 1,
+    {color = 0x000, strokeColor = 0x888888, strokeWidth = 0.03, createAxis=true} = {}
+  ){
+    super(
+      xMin,
+      xMax,
+      yMin,
+      yMax,
+      xWidth,
+      yHeight,
+      xTickInterval,
+      yTickInterval,
+      {color: color, strokeColor: strokeColor, strokeWidth: strokeWidth, createAxis: false}
+    );
+
+    this.zMin = zMin;
+    this.zMax = zMax;
+    this.zDepth = zDepth;
+    this.zTickInterval = zTickInterval;
+    if (createAxis){
+      this.createAxis();
+    }
+  }
+
+  createAxis(){
+    super.createAxis();
+    this.zAxis = new NumberLine(this.zMin, this.zMax, this.zDepth, this.zTickInterval, 2, 2,
+        { color: this.color, strokeColor: this.strokeColor, strokeWidth: this.strokeWidth, startLabel: false });
+    this.zAxis.group.translateZ(this.zDepth / 2);
+    this.zAxis.group.translateX(-this.xWidth / 2);
+    this.zAxis.group.translateY(-this.yHeight / 2);
+    this.zAxis.rotateY(-Math.PI / 2);
+
+    this.group.add(this.zAxis);
+  }
+
+  pointToLine(x, y, z) {
+      var vecXY = super.pointToLine(x, y);
+      var vecZ = this.zAxis.p2l(z);
+      var vec = vecXY.add(vecZ);
+      vec.applyAxisAngle(new THREE.Vector3(0, 0, 1), this.group.rotation.z);
+      vec.add(this.group.position);
+
+      return vec;
+  }
+
+  p2l(x, y, z) {
+      return this.pointToLine(x, y, z);
+  }
+}
 // Interpolation Functions
 
 function linearInterpolateVectors(a, b, alpha, interpolation = EasingFunction.linear) {

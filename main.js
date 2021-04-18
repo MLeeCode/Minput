@@ -35,7 +35,7 @@ scene.add(objectCSS);
 
 //textObj = new Mtext("$$x = y^{2}$$", { color: 0x00ff00, fontSize: "3em" });
 
-axis = new Axis2D(0, 5, 0, 5, 5, 5);
+axis = new Axis3D(0, 5, 0, 5, 0, 5, 5, 5, 5);
 axis.position(new THREE.Vector3(-2.5, -2.5, 0));
 
 function sin(x) {
@@ -46,12 +46,12 @@ function cos(x) {
     return Math.cos(x ** 2) + 3;
 }
 
-axis.parametricPlot(sin);
-axis.parametricPlot(cos, 0x00aaaa);
+//axis.parametricPlot(sin);
+//axis.parametricPlot(cos, 0x00aaaa);
 
 triangle = new Circle(0.2, 50, { color: 0x0000ff, strokeWidth: 0 });
 
-triangle.position(axis.p2l(2, 4));
+triangle.position(axis.p2l(2, 4, 0));
 
 var xSlider = document.getElementById("xAxis");
 var ySlider = document.getElementById("yAxis");
@@ -61,7 +61,7 @@ console.log(axis.yAxis.p2l(0));
 
 const animate = function () {
     requestAnimationFrame(animate);
-    triangle.position(axis.p2l(xSlider.value, ySlider.value));
+    triangle.position(axis.p2l(xSlider.value, ySlider.value, 2.5));
     controls.update();
     renderer.render(scene, camera);
     cssRenderer.render(scene, camera);
@@ -123,5 +123,3 @@ function updateGrid(grid, squares) {
     }
 }
 */
-
-
